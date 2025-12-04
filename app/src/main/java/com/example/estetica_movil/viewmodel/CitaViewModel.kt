@@ -34,4 +34,24 @@ class CitaViewModel : ViewModel() {
         }
     }
 
+    fun cambiarEstado(id: Int, estado: String) {
+        viewModelScope.launch {
+            repository.cambiarEstado(id, estado)
+            obtenerCitas()
+        }
+    }
+
+    fun eliminarCita(id: Int) {
+        viewModelScope.launch {
+            try {
+                repository.eliminarCita(id)
+                obtenerCitas() // refresca lista
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+
+
 }

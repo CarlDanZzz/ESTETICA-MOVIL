@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateListOf
@@ -48,7 +50,7 @@ import com.example.estetica_movil.repository.CitaRepository
 
 @Composable
 fun PantallaCitas(
-    viewModel: CitaViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: CitaViewModel = viewModel()
 ) {
 
     val citas by viewModel.citas.collectAsState()
@@ -63,36 +65,111 @@ fun PantallaCitas(
             item {
                 Text(
                     text = "No hay citas registradas",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp
                 )
             }
         }
 
         items(citas) { cita ->
 
+            // Color según estado
+            val colorEstado = when (cita.estado) {
+                "realizada" -> Color(0xFFB2FFB2)   // verde clarito
+                "cancelada" -> Color(0xFFFFB2B2)   // rojo clarito
+                else -> Color(0xFFFFF3B0)          // amarillito
+            }
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
             ) {
-
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .background(colorEstado)
+                        .padding(16.dp)
                 ) {
 
                     Text(
                         text = "Cita #${cita.id}",
-                        style = MaterialTheme.typography.titleMedium
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
                     )
 
-                    Text("Cliente: ${cita.cliente_id}")
-                    Text("Personal: ${cita.personal_id}")
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text("Cliente ID: ${cita.cliente_id}")
+                    Text("Personal ID: ${cita.personal_id}")
                     Text("Fecha: ${cita.fecha}")
                     Text("Hora: ${cita.hora}")
-                    Text("Estado: ${cita.estado}")
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Estado: ${cita.estado}",
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // BOTONES
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        var expanded by remember { mutableStateOf(false) }
+
+                        Box {
+                            Button(onClick = { expanded = true }) {
+                                Text("Cambiar estado")
+                            }
+
+                            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+
+                                DropdownMenuItem(
+                                    text = { Text("Pendiente") },
+                                    onClick = {
+                                        viewModel.cambiarEstado(cita.id, "pendiente")
+                                        expanded = false
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Realizada") },
+                                    onClick = {
+                                        viewModel.cambiarEstado(cita.id, "realizada")
+                                        expanded = false
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Cancelada") },
+                                    onClick = {
+                                        viewModel.cambiarEstado(cita.id, "cancelada")
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+
+
+                        Button(
+                            onClick = { viewModel.eliminarCita(cita.id) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE53935)
+                            )
+                        ) {
+                            Text("Eliminar")
+                        }
+                    }
                 }
             }
         }
     }
 }
+
